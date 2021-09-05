@@ -1,20 +1,16 @@
-This repository helps you quickly setup a SystemVerilog starter template
-with a basic Verilator testbench
-
 ## Getting started
 
-### Dependencies
-- Verilator
-- Fusesoc 
+### Prerequisite
+- [FuseSoC](https://fusesoc.readthedocs.io/en/stable/user/installation.html#installation-under-linux)
+- [SymbiYosys and Yosys](https://symbiyosys.readthedocs.io/en/latest/)
+- [Verilator](https://verilator.org/guide/latest/install.html) 
 
-```
-git clone <this design> <dir>
-cd <dir>
+```bash
+git clone git@github.com:saw235/riscv-core-dev.git
 
-# Add fusesoc libraries and dependencies 
-fusesoc library add my_design .
-fusesoc library add fusesoc-cores https://github.com/fusesoc/fusesoc-cores
+cd riscv-core-dev
 
-# Runs simulation
-fusesoc run --target=sim my_design
+git checkout -b <my_feature_branch> 
+fusesoc library add riscv-core-dev .
+
 ```

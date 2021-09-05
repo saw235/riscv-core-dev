@@ -4,13 +4,12 @@ description: Description of your design
 filesets:
   rtl:
     files:
-      - src/adder.sv
-      - src/dff.sv
+      - src/decoder.sv
     file_type: systemVerilogSource
 
   adder_tb:
     files:
-      - testbench/tb_top_adder.sv
+      -
     file_type: systemVerilogSource
 
   verilator_tb:

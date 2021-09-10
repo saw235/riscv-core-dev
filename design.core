@@ -4,12 +4,14 @@ description: Description of your design
 filesets:
   rtl:
     files:
-      - src/decoder.sv
+      - src/core.sv
     file_type: systemVerilogSource
+    depend: 
+      - pulp-platform.org::common_cells:1.20.0
 
-  adder_tb:
+  core_tb:
     files:
-      -
+      - testbench/tb_top.sv
     file_type: systemVerilogSource
 
   verilator_tb:
@@ -18,11 +20,11 @@ filesets:
     file_type : cppSource
   
 targets:
-  adder_tb_sim:
+  sim:
     default_tool : verilator
     filesets :
       - rtl
-      - adder_tb
+      - core_tb
       - verilator_tb
     tools:
       verilator:
@@ -30,4 +32,4 @@ targets:
           - --language 1800-2017
           - --trace
           - -Wno-fatal 
-    toplevel : tb_top_adder
+    toplevel : tb_top

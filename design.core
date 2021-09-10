@@ -14,6 +14,11 @@ filesets:
       - testbench/tb_top.sv
     file_type: systemVerilogSource
 
+  formal:
+    files:
+      - sbyConfig.sby.j2
+    file_type: sbyConfigTemplate
+
   verilator_tb:
     files: 
       - testbench/sim_main.cpp 
@@ -33,3 +38,11 @@ targets:
           - --trace
           - -Wno-fatal 
     toplevel : tb_top
+  formal:
+    default_tool : symbiyosys
+    filesets :
+      - rtl
+      - formal
+    tools:
+      symbiyosys:
+    toplevel : core

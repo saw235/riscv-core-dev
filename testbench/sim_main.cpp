@@ -24,10 +24,10 @@ int main(int argc, char** argv, char** env) {
     // Construct the Verilated model, from Vtop.h generated from Verilating "top.v"
     Vtb_top* tb_top = new Vtb_top;
 
-    int cycles = 0;
-    int testdone = 0;
+    // Deassert CPU reset
+    tb_top->cpu_rstn = 1;
 
-        // Simulate until $finish
+    // Simulate until $finish
     while (!Verilated::gotFinish()) {
         tb_top->clk = ~tb_top->clk;
     

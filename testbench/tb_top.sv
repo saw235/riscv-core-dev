@@ -8,9 +8,13 @@ module tb_top(
         .cpu_rstn(cpu_rstn)
     );
 
-    // // load instruction into mem
-    // initial begin
-    //     $readmemh("hex_memory_file.mem", memory_array,
-    // end
+
+    int cycle = 0;
+    always @(posedge clk) begin
+        cycle = cycle + 1;
+        $display("cycle\t:%32d", cycle);
+        $display("pc\t:%32d", cpu.current_pc);
+    end
 
 endmodule
+

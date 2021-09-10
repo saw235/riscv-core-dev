@@ -5,6 +5,7 @@
 - [SymbiYosys and Yosys](https://symbiyosys.readthedocs.io/en/latest/)
 - [Verilator](https://verilator.org/guide/latest/install.html) 
 
+The command below pulls all the necesary rtl packages.
 ```bash
 git clone git@github.com:saw235/riscv-core-dev.git
 

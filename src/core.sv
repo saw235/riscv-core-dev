@@ -1,6 +1,10 @@
 `define XLEN 32
 
 `include "registers.svh"
+`include "prim_assert.sv"
+
+// A macro to emulate |-> (a syntax that Yosys doesn't currently support).
+`define IMPLIES(a, b) ((b) || (!(a))) 
 
 module core(
     input logic clk,
@@ -50,28 +54,18 @@ module core(
         .intf(imem_if)
     );
 
-    `ifdef FORMAL
-    always @(posedge clk) begin
-        assert (current_pc < 32);
-    end
-    `endif
-
-endmodule
-
-// `ifdef FORMAL
-// module ifetch_property(
-//     input clk,
-//     input current_pc,
-//     input fetch_addr_misaligned
-// );
 
 //     property raise_misalign;
 //         !(current_pc % 4 == 0) |-> fetch_addr_misaligned;
 //     endproperty
-
 //     assert property raise_misalign (@ (posedge clk)) else display "Fetch address misaligned but error is not raised.";
-// endmodule
-// `endif
+
+`ifdef FORMAL
+    `ASSERT(raise_misalign, `IMPLIES(!(current_pc % 4 == 0), !fetch_addr_misaligned), clk, cpu_rstn)
+`endif
+
+endmodule
+
 
 interface mem_intf #(
     parameter integer BUSWIDTH = 32,

@@ -1,9 +1,16 @@
+[tasks]
+prove pf
+cover cv
+
 [options]
-mode bmc
-depth 100
+pf: mode prove
+pf: depth 3
+
+cv: mode cover
+cv: depth 32
 
 [engines]
-smtbmc
+smtbmc boolector
 
 [script]
 {{"-sv"|gen_reads}}

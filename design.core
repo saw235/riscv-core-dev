@@ -14,11 +14,12 @@ filesets:
       - testbench/tb_top.sv
     file_type: systemVerilogSource
 
-  formal:
+  formal_files:
     files:
       - sbyConfig.sby.j2 : { file_type: sbyConfigTemplate }
     depend:
       - lowrisc:util:sv2v
+      - lowrisc:prim:assert
 
   verilator_tb:
     files: 
@@ -43,7 +44,9 @@ targets:
     default_tool : symbiyosys
     filesets :
       - rtl
-      - formal
+      - formal_files
     tools:
       symbiyosys:
+        tasknames:
+          - prove
     toplevel : core

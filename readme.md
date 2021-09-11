@@ -14,8 +14,7 @@ cd riscv-core-dev
 
 git checkout -b <my_feature_branch> 
 fusesoc library add riscv-core-dev .
-fusesoc library add pulp_common_cells https://github.com/pulp-platform/common_cells
-
+fusesoc library add lowrisc_prim https://github.com/saw235/lowrisc_prim
 ```
 
 ### To run simulation or formal

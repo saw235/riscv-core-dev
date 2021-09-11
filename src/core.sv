@@ -1,5 +1,7 @@
 `define XLEN 32
 
+`include "registers.svh"
+
 module core(
     input logic clk,
     input logic cpu_rstn
@@ -42,7 +44,7 @@ module core(
     assign instruction = imem_if.rd_data;
     // End behavioral ram assignments
 
-    `FF(current_pc, next_pc, 0, clk, cpu_rstn)
+    `FF(current_pc, next_pc, 0, clk, cpu_rstn);
 
     mem instr_mem (
         .intf(imem_if)

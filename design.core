@@ -4,10 +4,10 @@ description: Description of your design
 filesets:
   rtl:
     files:
-      - src/core.sv
-    file_type: systemVerilogSource
-    depend: 
-      - pulp-platform.org::common_cells:1.20.0
+      - src/core.sv : { file_type: systemVerilogSource }
+      - src/include/common_cells/registers.svh : { file_type: systemVerilogSource, is_include_file : true}
+    # depend: 
+      # - pulp-platform.org::common_cells:1.20.0
 
   core_tb:
     files:
@@ -16,8 +16,9 @@ filesets:
 
   formal:
     files:
-      - sbyConfig.sby.j2
-    file_type: sbyConfigTemplate
+      - sbyConfig.sby.j2 : { file_type: sbyConfigTemplate }
+    depend:
+      - lowrisc:util:sv2v
 
   verilator_tb:
     files: 

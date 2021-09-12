@@ -1,12 +1,10 @@
 `define XLEN 32
 
 `include "registers.svh"
-`include "prim_assert.sv"
 
-// A macro to emulate |-> (a syntax that Yosys doesn't currently support).
-`define IMPLIES(a, b) ((b) || (!(a))) 
-
-module core(
+module core
+    import pkg::*;
+(
     input logic clk,
     input logic cpu_rstn
 );
@@ -22,6 +20,9 @@ module core(
     logic [`XLEN-1:0] instruction;
 
     logic [`XLEN-1:0] target_address;
+
+    instr_field i_field_pkt;
+    opcode_map op_decode_pkt;
 
     mem_intf imem_if (.clk(clk));
 
@@ -54,15 +55,17 @@ module core(
         .intf(imem_if)
     );
 
+    decoder decode(
+        .i(instruction),
+        .i_field_pkt(i_field_pkt),
+        .op_decode_pkt(op_decode_pkt)
+    );
 
-//     property raise_misalign;
-//         !(current_pc % 4 == 0) |-> fetch_addr_misaligned;
-//     endproperty
-//     assert property raise_misalign (@ (posedge clk)) else display "Fetch address misaligned but error is not raised.";
-
-`ifdef FORMAL
-    `ASSERT(raise_misalign, `IMPLIES(!(current_pc % 4 == 0), !fetch_addr_misaligned), clk, cpu_rstn)
-`endif
+    `ifdef FORMAL
+    `ifdef YOSYS
+        `include "formal_tb_frag.svh"
+    `endif
+    `endif
 
 endmodule
 

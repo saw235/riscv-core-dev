@@ -5,6 +5,9 @@ filesets:
   rtl:
     files:
       - src/core.sv : { file_type: systemVerilogSource }
+      # - src/regfile.sv : { file_type: systemVerilogSource }
+      - src/decoder.sv : { file_type: systemVerilogSource }
+      - src/pkg.sv : { file_type: systemVerilogSource}
       - src/include/common_cells/registers.svh : { file_type: systemVerilogSource, is_include_file : true}
     # depend: 
       # - pulp-platform.org::common_cells:1.20.0
@@ -17,6 +20,8 @@ filesets:
   formal_files:
     files:
       - sbyConfig.sby.j2 : { file_type: sbyConfigTemplate }
+      - testbench/formal/formal_tb_frag.svh : {file_type: systemVerilogSource, is_include_file: true}
+      - testbench/formal/core_formal_tb.sv : {file_type: systemVerilogSource}
     depend:
       - lowrisc:util:sv2v
       - lowrisc:prim:assert

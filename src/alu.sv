@@ -7,7 +7,9 @@
 
 typedef enum logic[3:0] {NOP, AND, OR, XOR, SLT, SLTU, SLL, SRL, SRA, ADD} alu_op_t;
 
-module alu #(parameter integer NBIT = 32)(
+module alu 
+    import pkg::*
+#(parameter integer NBIT = 32)(
     input logic [NBIT-1:0] a,
     input logic [NBIT-1:0] b,
     input alu_op_t op,

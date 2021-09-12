@@ -1,21 +1,29 @@
 ## Getting started
 
-### To start contributing
-Request for access to the project by creating an `issue` or emailing [me](sawxuezheng01@gmail.com). 
-
-### Prerequisite
+### Dependencies
 - [FuseSoC](https://fusesoc.readthedocs.io/en/stable/user/installation.html#installation-under-linux)
 - [SymbiYosys and Yosys](https://symbiyosys.readthedocs.io/en/latest/)
 - [Verilator](https://verilator.org/guide/latest/install.html) 
 - [sv2v](https://github.com/saw235/sv2v)
 
-The command below pulls all the necesary rtl packages.
+### To start contributing
+Easiest to to get started without dealing with all the prerequisites is to use the docker dev-container that was prepared.
+This will create and prepare a virtual machine image and install all the required dependencies. 
+ 
+1. Install [Docker](https://docs.docker.com/get-docker/) 
+2. Install [VSCode](https://code.visualstudio.com/download) 
+3. Install [VSCode Remote Development Extension Pack](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.vscode-remote-extensionpack)
+
+4. `git clone git@github.com:saw235/riscv-core-dev.git` 
+5. cd riscv-core-dev && code . 
+6. When VSCode prompt to "reopen in container" -> **Yes**
+7. Alternatively, you can also build the docker image yourself and manage it. 
+ 
+The docker image is persistent and cached so only the first run will take up installation time.
+
+
+Before running any simulation or rtl related commands, you should run the following to register RTL and pull all other RTL dependencies
 ```bash
-git clone git@github.com:saw235/riscv-core-dev.git
-
-cd riscv-core-dev
-
-git checkout -b <my_feature_branch> 
 fusesoc library add riscv-core-dev .
 fusesoc library add lowrisc_prim https://github.com/saw235/lowrisc_prim
 ```

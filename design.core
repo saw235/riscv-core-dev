@@ -5,10 +5,10 @@ filesets:
   rtl:
     files:
       - src/core.sv : { file_type: systemVerilogSource }
-      # - src/regfile.sv : { file_type: systemVerilogSource }
       - src/decoder.sv : { file_type: systemVerilogSource }
-      - src/pkg.sv : { file_type: systemVerilogSource}
+      - src/interfaces_pkg.sv : { file_type: systemVerilogSource }
       - src/include/common_cells/registers.svh : { file_type: systemVerilogSource, is_include_file : true}
+      - src/include/typedef.svh : { file_type: systemVerilogSource, is_include_file : true}
     # depend: 
       # - pulp-platform.org::common_cells:1.20.0
 
@@ -48,10 +48,11 @@ targets:
   formal:
     default_tool : symbiyosys
     filesets :
+      - core_tb
       - rtl
       - formal_files
     tools:
       symbiyosys:
         tasknames:
           - prove
-    toplevel : core
+    toplevel : tb_top

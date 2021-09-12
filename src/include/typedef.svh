@@ -1,4 +1,5 @@
-package pkg;
+`ifndef _TYPEDEF_
+`define _TYPEDEF_
 
 typedef struct packed {
     logic LOAD;
@@ -24,23 +25,23 @@ typedef struct packed {
     logic SYSTEM;
 } opcode_map;
 
-typedef struct {
-    logic funct7[6:0];
-    logic funct3[2:0];
-    logic rs2[4:0];
-    logic rs1[4:0];
-    logic rd[4:0];
-    logic opcode[6:0];
-    logic imm_i[11:0];
-    logic imm_s[11:0];
-    logic imm_b[11:0];
-    logic imm_u[19:0];
-    logic imm_j[19:0];
+typedef struct packed {
+    logic [6:0] funct7;
+    logic [2:0] funct3;
+    logic [4:0] rs2;
+    logic [4:0] rs1;
+    logic [4:0] rd;
+    logic [6:0] opcode;
+    logic [11:0] imm_i;
+    logic [11:0] imm_s;
+    logic [11:0] imm_b;
+    logic [19:0] imm_u;
+    logic [19:0] imm_j;
 } instr_field;
 
-typedef struct {
+typedef struct packed {
     logic [31:0] rs1_val;
     logic [31:0] rs2_val;
 } regval;
 
-endpackage
+`endif

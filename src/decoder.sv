@@ -1,12 +1,29 @@
-`include "prim_assert.sv"
+`ifdef FORMAL
+    `include "prim_assert.sv"
+`endif
+
+`include "typedef.svh"
+
 
 module decoder
-    import pkg::*;
 (
     input logic [31:0] i, // instruction
     output instr_field i_field_pkt,
     output opcode_map op_decode_pkt
 );
+
+    logic _0_0_x;
+    logic _0_1_x;
+    logic _1_0_x;
+    logic _1_1_x;
+    logic x_0_0_0;
+    logic x_0_0_1;
+    logic x_0_1_0;
+    logic x_0_1_1;
+    logic x_1_0_0;
+    logic x_1_0_1;
+    logic x_1_1_0;
+    logic x_1_1_1;
 
     // .extract
     // funct7 = 31..25
@@ -17,7 +34,7 @@ module decoder
     // opcode = 6..0
     // imm_i = 31..20
     // imm_s = 31..25 11..7
-    // imm_b = 31 7..6 30..25 11..8   = 1 + 2 + 6 + 4
+    // imm_b = 31 7 30..25 11..8   = 1 + 1 + 6 + 4
     // imm_u = 31..12
     // imm_j = 31 19..12 20 30..21   = 1 + 8 + 1 + 10
 
@@ -29,7 +46,7 @@ module decoder
     assign i_field_pkt.opcode = i[6:0];
     assign i_field_pkt.imm_i = i[31:20];
     assign i_field_pkt.imm_s = { i[31:25], i[11:7]};
-    assign i_field_pkt.imm_b = { i[31], i[7:6], i[30:25], i[11:8]};
+    assign i_field_pkt.imm_b = { i[31], i[7], i[30:25], i[11:8]};
     assign i_field_pkt.imm_u = i[31:12];
     assign i_field_pkt.imm_j = {i[31], i[19:12], i[20], i[30:21]};
 
@@ -89,7 +106,6 @@ endmodule
 
 
 module ex 
-    import pkg::*;
 (
     input regval reg_val_pkt,
     input instr_field i_field_pkt,

@@ -1,12 +1,23 @@
+// TEMP - Workaround for now since sv2v in place have some deficiencies
 `define XLEN 32
+`define ADDRWIDTH 32
+`define BUSWIDTH 32
 
 `include "registers.svh"
+`include "typedef.svh"
 
 module core
-    import pkg::*;
 (
     input logic clk,
-    input logic cpu_rstn
+    input logic cpu_rstn,
+
+    // master mem intf
+    output logic [`ADDRWIDTH-1:0] rd_addr,
+    output logic [`ADDRWIDTH-1:0] wr_addr,
+    output logic [`BUSWIDTH-1:0] wr_data,
+    output logic wren,
+
+    input logic [`BUSWIDTH-1:0] rd_data
 );
 
     logic [`XLEN-1:0] fetch_addr;
@@ -23,9 +34,6 @@ module core
 
     instr_field i_field_pkt;
     opcode_map op_decode_pkt;
-
-    mem_intf imem_if (.clk(clk));
-
     
     assign target_address = 32'b0;
 
@@ -41,19 +49,15 @@ module core
 
     // Start behavioral ram assignments
     // TODO use actual bus interface or NoC architecture
-    assign imem_if.rd_addr = current_pc;
+    assign rd_addr = current_pc;
     // Don't care about writes to imem for now just initialize to 0 
-    assign imem_if.wr_addr = 0;
-    assign imem_if.wr_data = 0; 
-    assign imem_if.wren = 0; 
-    assign instruction = imem_if.rd_data;
+    assign wr_addr = 0;
+    assign wr_data = 0; 
+    assign wren = 0; 
+    assign instruction = rd_data;
     // End behavioral ram assignments
 
     `FF(current_pc, next_pc, 0, clk, cpu_rstn);
-
-    mem instr_mem (
-        .intf(imem_if)
-    );
 
     decoder decode(
         .i(instruction),
@@ -66,48 +70,5 @@ module core
         `include "formal_tb_frag.svh"
     `endif
     `endif
-
-endmodule
-
-
-interface mem_intf #(
-    parameter integer BUSWIDTH = 32,
-    parameter integer ADDRWIDTH = 32 
-)(
-    input logic clk
-);
-    logic [ADDRWIDTH-1:0] rd_addr;
-    logic [ADDRWIDTH-1:0] wr_addr;
-    logic [BUSWIDTH-1:0] wr_data;
-    logic wren;
-
-    logic [BUSWIDTH-1:0] rd_data;
-
-    modport mem(
-        input rd_addr, wr_addr, wr_data, wren, clk,
-        output rd_data
-    );
-
-endinterface
-
-// simple behavioral ram model
-// not meant for synthesis
-module mem #(
-    parameter integer RAMDEPTH = 2 ** 10,  
-    parameter integer BUSWIDTH = 32,
-    parameter integer ADDRWIDTH = 32
-)(
-    mem_intf.mem intf
-);
-
-    logic [BUSWIDTH-1:0] local_mem [0:RAMDEPTH-1];
-    
-    always_ff @(posedge intf.clk) begin
-        intf.rd_data <= local_mem[intf.rd_addr];
-
-        if (intf.wren) begin
-            local_mem[intf.wr_addr] <= intf.wr_data;
-        end
-    end
 
 endmodule

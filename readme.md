@@ -7,7 +7,7 @@
 - [sv2v](https://github.com/saw235/sv2v)
 
 ### To start contributing
-Easiest to to get started without dealing with all the **dependencies** is to use the docker `.devcontainer` that was prepared.
+Easiest way to get started without dealing with all the **dependencies** is to use the docker `.devcontainer` that was prepared.
 This will create and prepare a virtual machine image and install all the required dependencies. 
  
 1. Install [Docker](https://docs.docker.com/get-docker/) 
@@ -34,6 +34,9 @@ fusesoc library add lowrisc_prim https://github.com/saw235/lowrisc_prim
 fusesoc run --target=sim riscv-sv
 fusesoc run --target=formal riscv-sv
 ```
+
+### Development Flow
+Refer to 
 
 ### To contribute to microarchitecture
 1. Send an email <sawxuezheng01@gmail.com> titled "uarch contrb request" and I will share with you the link to the folder which host all the drawio files.

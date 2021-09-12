@@ -1,5 +1,8 @@
 ## Getting started
 
+### To start contributing
+Request for access to the project by creating an `issue` or emailing [me](sawxuezheng01@gmail.com). 
+
 ### Prerequisite
 - [FuseSoC](https://fusesoc.readthedocs.io/en/stable/user/installation.html#installation-under-linux)
 - [SymbiYosys and Yosys](https://symbiyosys.readthedocs.io/en/latest/)

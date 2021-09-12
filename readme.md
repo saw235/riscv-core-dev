@@ -22,14 +22,15 @@ This will create and prepare a virtual machine image and install all the require
  
 The docker image is persistent and cached so only the first run will take up installation time.
 
-Before running any simulation or rtl related commands, you should run the following to register RTL and pull all other RTL dependencies
+### Setup
+Before running any simulation or rtl related commands, you should run the following to register your RTL 
+and pull all other RTL dependencies in FuseSoC (our HDL package manager)
 ```bash
 fusesoc library add riscv-core-dev .
 fusesoc library add lowrisc_prim https://github.com/saw235/lowrisc_prim
 ```
 
 ### To run simulation or formal
-
 ```
 fusesoc run --target=sim riscv-sv
 fusesoc run --target=formal riscv-sv

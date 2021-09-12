@@ -7,7 +7,7 @@
 - [sv2v](https://github.com/saw235/sv2v)
 
 ### To start contributing
-Easiest to to get started without dealing with all the prerequisites is to use the docker dev-container that was prepared.
+Easiest to to get started without dealing with all the **dependencies** is to use the docker `.devcontainer` that was prepared.
 This will create and prepare a virtual machine image and install all the required dependencies. 
  
 1. Install [Docker](https://docs.docker.com/get-docker/) 
@@ -15,7 +15,7 @@ This will create and prepare a virtual machine image and install all the require
 3. Install [VSCode Remote Development Extension Pack](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.vscode-remote-extensionpack)
 
 4. `git clone git@github.com:saw235/riscv-core-dev.git` 
-5. cd riscv-core-dev && code . 
+5. `cd riscv-core-dev && code .` 
 6. When VSCode prompt to "reopen in container" -> **Yes**
 7. Alternatively, you can also build the docker image yourself and manage it. 
  
@@ -33,7 +33,6 @@ fusesoc library add lowrisc_prim https://github.com/saw235/lowrisc_prim
 ```
 fusesoc run --target=sim riscv-sv
 fusesoc run --target=formal riscv-sv
-
 ```
 
 ### To contribute to microarchitecture

@@ -18,7 +18,9 @@ This will create and prepare a virtual machine image and install all the require
 3. `git clone git@github.com:<your_username>/riscv-core-dev.git` 
 4. `cd riscv-core-dev && code .` 
 5. When VSCode prompt to "reopen in container" -> **Yes**
-6. Alternatively, you can also build the docker image yourself and manage it. 
+6. Alternatively, you can also build/pull the docker image yourself and manage it:
+    - **Pull** the image with `docker pull saw235/riscvsv`, or
+    - **Build** the image with `docker build --pull --rm -f ".devcontainer/Dockerfile" -t digital_design_devcontainer ".devcontainer"`
  
 The docker image is persistent and cached so only the first run will take up installation time.
 

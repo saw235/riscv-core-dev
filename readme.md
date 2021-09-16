@@ -14,11 +14,14 @@ This will create and prepare a virtual machine image and install all the require
     - [Docker](https://docs.docker.com/get-docker/)
     - [VSCode](https://code.visualstudio.com/download)
     - [VSCode Remote Development Extension Pack](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.vscode-remote-extensionpack)
-2. Create a Github **fork** of this repository. See *Development Flow* below
-3. `git clone git@github.com:<your_username>/riscv-core-dev.git` 
-4. `cd riscv-core-dev && code .` 
-5. When VSCode prompt to "reopen in container" -> **Yes**
-6. Alternatively, you can also build the docker image yourself and manage it. 
+2. **Pull** the docker image with `docker pull saw235/riscvsv`
+3. Create a Github **fork** of this repository. See *Development Flow* below
+4. `git clone git@github.com:<your_username>/riscv-core-dev.git` 
+5. `cd riscv-core-dev && code .` 
+6. When VSCode prompt to "reopen in container" -> **Yes** (Or Shift + P -> "Reopen in Container") 
+7. Once the folder is reopened in the container, you can use `ctrl` + ``` ` ``` to open up a bash terminal for the container.
+8. Alternatively, you can also build/pull the docker image yourself and manage it:
+    - **Build** the image with `docker build --pull --rm -f ".devcontainer/Dockerfile" -t digital_design_devcontainer ".devcontainer"`
  
 The docker image is persistent and cached so only the first run will take up installation time.
 

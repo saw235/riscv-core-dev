@@ -14,8 +14,8 @@ This will create and prepare a virtual machine image and install all the require
     - [Docker](https://docs.docker.com/get-docker/)
     - [VSCode](https://code.visualstudio.com/download)
     - [VSCode Remote Development Extension Pack](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.vscode-remote-extensionpack)
-2. Create a Github **fork** of this repository. See *Development Flow* below
-3. **Pull** the docker image with `docker pull saw235/riscvsv`
+2. **Pull** the docker image with `docker pull saw235/riscvsv`
+3. Create a Github **fork** of this repository. See *Development Flow* below
 4. `git clone git@github.com:<your_username>/riscv-core-dev.git` 
 5. `cd riscv-core-dev && code .` 
 6. When VSCode prompt to "reopen in container" -> **Yes** (Or Shift + P -> "Reopen in Container") 

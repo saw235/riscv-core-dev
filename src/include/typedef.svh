@@ -1,6 +1,19 @@
 `ifndef _TYPEDEF_
 `define _TYPEDEF_
 
+typedef enum logic[3:0] {
+    ADD = 4'b0000,
+    AND = 4'b0111, 
+    OR = 4'b0110, 
+    XOR = 4'b0100, 
+    SLT = 4'b0010, 
+    SLTU = 4'b0011, 
+    SLL = 4'b0001, 
+    SRL = 4'b0101,
+    SRA = 4'b1101, 
+    NOP = 4'b1000 
+} alu_op_t;
+
 typedef struct packed {
     logic LOAD;
     logic LOAD_FP;
@@ -42,6 +55,7 @@ typedef struct packed {
 typedef struct packed {
     logic [31:0] rs1_val;
     logic [31:0] rs2_val;
-} regval;
+} regval_t;
+
 
 `endif

@@ -3,6 +3,7 @@
 `endif
 
 `include "typedef.svh"
+`include "defines.svh"
 
 
 module decoder
@@ -105,36 +106,36 @@ module decoder
 endmodule
 
 
-module ex 
-(
-    input regval reg_val_pkt,
-    input instr_field i_field_pkt,
-    output opcode_map op_decode_pkt
-);
+// module ex 
+// (
+//     input regval reg_val_pkt,
+//     input instr_field i_field_pkt,
+//     output opcode_map op_decode_pkt
+// );
 
-    logic use_alu;
-    logic write_rd;
-    logic write_pc;
-    logic read_mem;
-    logic read_rs1;
-    logic read_rs2;
-    logic use_rs1;
-    logic use_rs2;
+//     logic use_alu;
+//     logic write_rd;
+//     logic write_pc;
+//     logic read_mem;
+//     logic read_rs1;
+//     logic read_rs2;
+//     logic use_rs1;
+//     logic use_rs2;
     
-    assign use_alu = op_decode_pkt.OP_IMM | op_decode_pkt.AUIPC | 
-                    op_decode_pkt.OP | op_decode_pkt.JAL |
-                    op_decode_pkt.JALR | op_decode_pkt.BRANCH | op_decode_pkt.LOAD | op_decode_pkt.STORE;
+//     assign use_alu = op_decode_pkt.OP_IMM | op_decode_pkt.AUIPC | 
+//                     op_decode_pkt.OP | op_decode_pkt.JAL |
+//                     op_decode_pkt.JALR | op_decode_pkt.BRANCH | op_decode_pkt.LOAD | op_decode_pkt.STORE;
 
-    assign use_plus4 = op_decode_pkt.JAL | op_decode_pkt.JALR;
+//     assign use_plus4 = op_decode_pkt.JAL | op_decode_pkt.JALR;
 
-    assign read_rs1 = op_decode_pkt.OP | op_decode_pkt.JALR | op_decode_pkt.BRANCH | op_decode_pkt.LOAD | op_decode_pkt.STORE;
-    assign read_rs2 = op_decode_pkt.OP | op_decode_pkt.BRANCH | op_decode_pkt.STORE;
+//     assign read_rs1 = op_decode_pkt.OP | op_decode_pkt.JALR | op_decode_pkt.BRANCH | op_decode_pkt.LOAD | op_decode_pkt.STORE;
+//     assign read_rs2 = op_decode_pkt.OP | op_decode_pkt.BRANCH | op_decode_pkt.STORE;
 
-    assign write_rd = op_decode_pkt.OP | op_decode_pkt.OP_IMM | op_decode_pkt.LUI | op_decode_pkt.AUIPC | op_decode_pkt.LOAD;
-    assign write_pc = op_decode_pkt.JAL | op_decode_pkt.JALR | op_decode_pkt.BRANCH;
+//     assign write_rd = op_decode_pkt.OP | op_decode_pkt.OP_IMM | op_decode_pkt.LUI | op_decode_pkt.AUIPC | op_decode_pkt.LOAD;
+//     assign write_pc = op_decode_pkt.JAL | op_decode_pkt.JALR | op_decode_pkt.BRANCH;
 
-    assign read_mem = op_decode_pkt.LOAD;
-    assign write_mem = op_decode_pkt.STORE;
+//     assign read_mem = op_decode_pkt.LOAD;
+//     assign write_mem = op_decode_pkt.STORE;
 
 
-endmodule
+// endmodule

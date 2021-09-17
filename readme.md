@@ -40,9 +40,21 @@ fusesoc run --target=sim riscv-sv
 fusesoc run --target=formal riscv-sv
 ```
 
+### To run gatekeeper tests locally
+Gatekeeper tests are required to be passed before any pull request merge can continue. These tests can be run via the `Actions` tab on github or locally with `pytest` :  
+```
+# runs all
+pytest 
+
+# runs tests in the (tests/smoke directory)
+pytest tests/smoke
+
+# runs a subset of test that matches the pattern
+pytest -k <pattern>
+```
+
 ### Development Flow
 <img src="docs/contrib.png" alt="alttext" width="500"/>
-
 
 ### To contribute to microarchitecture
 1. Send an email to <sawxuezheng01@gmail.com> titled "uarch contrb request" and I will share with you the link to the folder which host all the drawio files.

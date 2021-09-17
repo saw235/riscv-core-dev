@@ -19,7 +19,7 @@ jobs:
   smoke-test:
 
     runs-on: ubuntu-latest
-    container: docker.io/saw235/riscsv:latest
+    container: docker://saw235/riscsv:latest
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:

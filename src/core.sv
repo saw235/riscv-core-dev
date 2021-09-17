@@ -118,9 +118,11 @@ module core
 
         // use alu only for these operation
         alu_use_qualifier = op_decode_pkt.OP | op_decode_pkt.OP_IMM | op_decode_pkt.LUI | op_decode_pkt.AUIPC;
-
-
-        // alu_op_add = i_field_pkt.funct3 == ADD[2:0];
+        
+        alu_op_add = {1'b0, i_field_pkt.funct3} == ADD;
+        alu_op_or = {1'b0, i_field_pkt.funct3} == OR;
+        alu_op_xor = {1'b0, i_field_pkt.funct3} == XOR;
+        
 
         
         

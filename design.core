@@ -35,6 +35,11 @@ filesets:
     file_type : cppSource
   
 targets:
+  default: &default_target
+    filesets :
+      - rtl
+    toplevel : core
+  
   sim:
     default_tool : verilator
     filesets :
@@ -48,6 +53,22 @@ targets:
           - --trace
           - -Wno-fatal 
     toplevel : tb_top
+
+  lint:
+    default_tool : verilator
+    filesets :
+      - rtl
+      - core_tb
+      - verilator_tb
+    tools:
+      verilator:
+        mode : lint-only
+        verilator_options :
+          - --language 1800-2017
+          - --trace
+          - -Wno-fatal
+    toplevel : tb_top
+
   formal:
     default_tool : symbiyosys
     filesets :
@@ -58,3 +79,6 @@ targets:
         tasknames:
           - prove
     toplevel : core
+
+
+  

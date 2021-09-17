@@ -1,5 +1,5 @@
 ## Getting started
-![Smoke Test](https://github.com/saw235/riscv-core-dev/actions/workflows/main.yml/badge.svg)
+![Smoke Test](https://github.com/saw235/riscv-core-dev/actions/workflows/smoke.yml/badge.svg)
 
 ### Main Dependencies
 - [FuseSoC](https://fusesoc.readthedocs.io/en/stable/user/installation.html#installation-under-linux)

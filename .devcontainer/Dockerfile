@@ -82,3 +82,6 @@ RUN curl -sSL https://get.haskellstack.org/ | sh && \
 
 # Install verilator
 RUN apt-get -y install verilator && apt-get clean
+
+# Install pytest
+RUN pip3 install --upgrade pytest

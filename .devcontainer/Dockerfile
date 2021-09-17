@@ -77,8 +77,11 @@ RUN curl -sSL https://get.haskellstack.org/ | sh && \
     git clone https://github.com/zachjs/sv2v.git && \
     cd sv2v && \
     make && \
-    stack install && \
+    cp bin/sv2v /usr/local/bin && \
     cd .. && rm -rf sv2v 
 
 # Install verilator
 RUN apt-get -y install verilator && apt-get clean
+
+# Install pytest
+RUN pip3 install --upgrade pytest

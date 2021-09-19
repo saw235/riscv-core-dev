@@ -2,3 +2,6 @@ build/
 fusesoc_libraries/
 .fake
 .ionide
+__pycache__
+.pytest_cache
+fusesoc.conf

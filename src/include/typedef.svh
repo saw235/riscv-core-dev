@@ -2,16 +2,16 @@
 `define _TYPEDEF_
 
 typedef enum logic[3:0] {
-    ADD = 4'b0000,
-    AND = 4'b0111, 
-    OR = 4'b0110, 
-    XOR = 4'b0100, 
-    SLT = 4'b0010, 
-    SLTU = 4'b0011, 
-    SLL = 4'b0001, 
-    SRL = 4'b0101,
-    SRA = 4'b1101, 
-    NOP = 4'b1000 
+    ADD     = 4'b0000,
+    SLL     = 4'b0001, 
+    SLT     = 4'b0010, 
+    SLTU    = 4'b0011, 
+    XOR     = 4'b0100, 
+    SRL     = 4'b0101,
+    OR      = 4'b0110, 
+    AND     = 4'b0111, 
+    SRA     = 4'b1101,
+    NOP     = 4'b1000 
 } alu_op_t;
 
 typedef struct packed {
@@ -57,5 +57,49 @@ typedef struct packed {
     logic [31:0] rs2_val;
 } regval_t;
 
+typedef struct packed {  
+    logic ADDI;
+    logic SLTI;
+    logic SLTIU;
+    logic XORI;
+    logic ORI;
+    logic ANDI;
+    logic SLLI;
+    logic SRLI;
+    logic SRAI;
+
+    logic LUI;
+    logic AUIPC;
+    logic JAL;
+    logic JALR;
+
+    logic ADD;
+    logic SUB;
+    logic SLL;
+    logic SLT;
+    logic SLTU;
+    logic XOR;
+    logic SRL;
+    logic SRA;
+    logic OR;
+    logic AND;
+
+    logic BEQ;
+    logic BNE;
+    logic BLT;
+    logic BGE;
+    logic BLTU;
+    logic BGEU;
+
+    logic LB;
+    logic LH;
+    logic LW;
+    logic LBU;
+    logic LHU;
+
+    logic SB;
+    logic SH;
+    logic SW;
+} instruction_decode_t;
 
 `endif

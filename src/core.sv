@@ -9,13 +9,20 @@ module core
     input logic clk,
     input logic cpu_rstn,
 
-    // master mem intf
-    output logic [`ADDRWIDTH-1:0] rd_addr,
-    output logic [`ADDRWIDTH-1:0] wr_addr,
-    output logic [`BUSWIDTH-1:0] wr_data,
-    output logic wren,
+    // master instr mem intf
+    output logic [`ADDRWIDTH-1:0] instr_rd_addr,
+    output logic [`ADDRWIDTH-1:0] instr_wr_addr,
+    output logic [`BUSWIDTH-1:0] instr_wr_data,
+    input logic [`BUSWIDTH-1:0] instr_rd_data,
+    output logic instr_wren,
 
-    input logic [`BUSWIDTH-1:0] rd_data
+    // master data mem intf
+    output logic [`ADDRWIDTH-1:0] data_rd_addr,
+    output logic [`ADDRWIDTH-1:0] data_wr_addr,
+    output logic [`BUSWIDTH-1:0] data_wr_data,
+    input logic [`BUSWIDTH-1:0] data_rd_data,
+    output logic data_wren
+
 );
 
     // Front-End signals (Fetch + Decode)
@@ -32,20 +39,85 @@ module core
 
     instr_field i_field_pkt;
     opcode_map op_decode_pkt;
+    instruction_decode_t instruction_decode_pkt;
+    logic is_illegal_instruction;
+
+    // getting the number of bits to sign extends
+    localparam offset_i_nbits = $bits(offset_i);
+    localparam offset_j_nbits = $bits(offset_j);
+    localparam offset_s_nbits = $bits(offset_s);
+    localparam offset_b_nbits = $bits(offset_b);
+
+    localparam sign_extend_i_nbits = $bits(alu_b) - offset_i_nbits;
+    localparam sign_extend_j_nbits = $bits(alu_b) - offset_j_nbits;
+    localparam sign_extend_s_nbits = $bits(alu_b) - offset_s_nbits;
+    localparam sign_extend_b_nbits = $bits(alu_b) - offset_b_nbits;
+
+    // alias for immediates
+    logic [$bits(i_field_pkt.imm_i)-1:0] offset_i;
+    logic [$bits(i_field_pkt.imm_j)-1:0] offset_j;
+    logic [$bits(i_field_pkt.imm_s)-1:0] offset_s;
+    logic [$bits(i_field_pkt.imm_b)-1:0] offset_b;
     
-    // Back-end signals (Ex + Mem)
+    // Back-end signals (Ex + Mem + WB)
+
+    logic [`XLEN-1:0] regfile_wr_data;
 
     logic [`XLEN-1:0] alu_a;
     logic [`XLEN-1:0] alu_b;
     logic [`XLEN-1:0] alu_result;
     alu_op_t alu_op;
-
-    logic [2:0] alu_b_select;
-
     regval_t regval;
 
+    logic alu_eq;
+    logic alu_ne;
+    logic alu_lt;
+    logic alu_ltu;
+    logic alu_ge;
+    logic alu_geu;
+
+    logic [`XLEN-1:0] return_address;
+    logic [`XLEN-1:0] address_generate;
+    logic [`XLEN-1:0] link_address;
+
+    // control signals
+    logic alu_b_use_imm_i;
+    logic next_pc_jump; 
+    logic regfile_use_imm_u;
+    logic regfile_use_link_address;
+    logic regfile_use_alu_result;
+    logic use_aligned_address_generate;
+    logic use_raw_address_generate;
+    logic adder_use_imm_u;
+    logic adder_use_offset_j;
+    logic adder_use_offset_i;
+    logic adder_use_offset_b;
+    logic regfile_wr_en;
+
+
     // Front-End logic (Next PC)
-    assign target_address = 32'b0;
+    
+    logic target_address_sel;
+
+    assign target_address_sel = use_aligned_address_generate;
+    assign target_address = target_address_sel ? address_generate & 32'hFFFE : address_generate;
+
+    always_comb begin : address_gen
+        logic [3:0] address_generate_sel;
+
+        address_generate_sel = {adder_use_imm_u, adder_use_offset_b, adder_use_offset_i, adder_use_offset_j};       
+
+        // may hide x's due to X-optimism
+        unique case (address_generate_sel)
+            4'b1000: address_generate = current_pc + {i_field_pkt.imm_u, 12'h000};
+            4'b0100: address_generate = current_pc + {{sign_extend_b_nbits{offset_b[offset_b_nbits-1]}}, offset_b};
+            4'b0010: address_generate = current_pc + {{sign_extend_i_nbits{offset_i[offset_i_nbits-1]}}, offset_i};
+            4'b0001: address_generate = current_pc + {{sign_extend_j_nbits{offset_j[offset_j_nbits-1]}}, offset_j};
+            default : address_generate = current_pc + {i_field_pkt.imm_u, 12'h000};
+        endcase
+    end
+        
+
 
     assign pc_plus_4 = current_pc + 4; 
     assign fetch_addr = current_pc;
@@ -55,50 +127,86 @@ module core
     // ie divisible by 4 byte
     // alignment implies => fetch_addr & 2^2-1 == 0 
     assign fetch_addr_misaligned = fetch_addr[0] | fetch_addr[1] | fetch_addr[2];
-    assign next_pc_sel = 1'b0; // temp for now
+    assign next_pc_sel = op_decode_pkt.BRANCH | op_decode_pkt.JAL | op_decode_pkt.JALR; // temp for now
 
     // Start behavioral ram assignments
     // TODO use actual bus interface or NoC architecture
-    assign rd_addr = current_pc;
+    assign instr_rd_addr = current_pc;
 
     // Don't care about writes to instruction - mem for now just initialize to 0 
-    assign wr_addr = 0;
-    assign wr_data = 0; 
-    assign wren = 0; 
-    assign instruction = rd_data;
+    assign instr_wr_addr = 0;
+    assign instr_wr_data = 0; 
+    assign instr_wren = 0; 
+    assign instruction = instr_rd_data;
     // End behavioral ram assignments
 
     `FF(current_pc, next_pc, 0, clk, cpu_rstn);
 
     // Back-End Logic
-    
-    // alias for immediates
-    logic [$bits(i_field_pkt.imm_i)-1:0] offset_i;
-    logic [$bits(i_field_pkt.imm_s)-1:0] offset_s;
-    logic [$bits(i_field_pkt.imm_b)-1:0] offset_b;
-
     assign offset_i = i_field_pkt.imm_i;
+    assign offset_j = i_field_pkt.imm_j;
     assign offset_s = i_field_pkt.imm_s;
     assign offset_b = i_field_pkt.imm_b;
 
-    assign alu_a = regval.rs1_val; 
+    assign alu_a = regval.rs1_val;
+
+    always_comb begin: controls
+        // control signal is a function of (opcode, funct3, funct7, imm, current state)
+        
+        alu_b_use_imm_i = instruction_decode_pkt.ADDI
+                            | instruction_decode_pkt.SLTI
+                            | instruction_decode_pkt.SLTIU
+                            | instruction_decode_pkt.XORI
+                            | instruction_decode_pkt.ORI
+                            | instruction_decode_pkt.ANDI
+                            | instruction_decode_pkt.SLLI
+                            | instruction_decode_pkt.SRLI
+                            | instruction_decode_pkt.SRAI;
+                            
+        next_pc_jump = instruction_decode_pkt.JAL | instruction_decode_pkt.JALR 
+                            | (instruction_decode_pkt.BEQ & alu_eq)
+                            | (instruction_decode_pkt.BNE & alu_ne)
+                            | (instruction_decode_pkt.BLT & alu_lt)
+                            | (instruction_decode_pkt.BGE & alu_ge)
+                            | (instruction_decode_pkt.BLTU & alu_ltu)
+                            | (instruction_decode_pkt.BGEU & alu_geu);
+
+        regfile_use_imm_u = instruction_decode_pkt.LUI;
+        regfile_use_link_address = instruction_decode_pkt.AUIPC 
+                                | instruction_decode_pkt.JAL 
+                                | instruction_decode_pkt.JALR ;
+        regfile_use_alu_result = ~(regfile_use_imm_u & regfile_use_link_address);
+
+        use_aligned_address_generate = instruction_decode_pkt.JALR;
+        use_raw_address_generate = ~use_aligned_address_generate;
+
+        adder_use_imm_u = instruction_decode_pkt.AUIPC;
+        adder_use_offset_j = instruction_decode_pkt.JAL;
+        adder_use_offset_i = instruction_decode_pkt.JALR;
+        adder_use_offset_b = op_decode_pkt.BRANCH;
+
+        regfile_wr_en = ~is_illegal_instruction 
+                        & (instruction_decode_pkt.LUI 
+                        | instruction_decode_pkt.JAL 
+                        | instruction_decode_pkt.JALR
+                        | op_decode_pkt.LOAD
+                        | op_decode_pkt.OP
+                        | op_decode_pkt.OP_IMM);
+
+        // dmem_write_req = ~is_illegal_instruction & op_decode_pkt.STORE;
+
+    end
 
     always_comb begin: alu_rs2_sel_mux
-        localparam offset_i_nbits = $bits(offset_i);
-        localparam offset_s_nbits = $bits(offset_s);
-        localparam offset_b_nbits = $bits(offset_b);
 
-        localparam sign_extend_i_nbits = $bits(alu_b) - offset_i_nbits;
-        localparam sign_extend_s_nbits = $bits(alu_b) - offset_s_nbits;
-        localparam sign_extend_b_nbits = $bits(alu_b) - offset_b_nbits;
+        logic alu_b_select;
+
+        alu_b_select = alu_b_use_imm_i;
 
         unique case (alu_b_select)
-            3'b000 : alu_b = regval.rs2_val;
-            3'b001 : alu_b = {i_field_pkt.imm_u, 12'b0};
-            3'b010 : alu_b = {{sign_extend_i_nbits{offset_i[offset_i_nbits-1]}}, offset_i};
-            3'b011 : alu_b = {{sign_extend_s_nbits{offset_s[offset_s_nbits-1]}}, offset_s};
-            3'b100 : alu_b = {{sign_extend_b_nbits{offset_b[offset_b_nbits-1]}}, offset_b};
-            default : alu_b = {$bits(alu_b){1'bx}};
+            1'b0 : alu_b = regval.rs2_val;
+            1'b1 : alu_b = {{sign_extend_i_nbits{offset_i[offset_i_nbits-1]}}, offset_i};
+            default : alu_b = 'x;
         endcase
     end
 
@@ -116,38 +224,74 @@ module core
         logic alu_op_sra;
         logic alu_op_add;
 
-        // use alu only for these operation
-        alu_use_qualifier = op_decode_pkt.OP | op_decode_pkt.OP_IMM | op_decode_pkt.LUI | op_decode_pkt.AUIPC;
+        // use alu only for these operations
+        alu_use_qualifier = op_decode_pkt.OP | op_decode_pkt.OP_IMM 
+                            | op_decode_pkt.LUI | op_decode_pkt.AUIPC 
+                            | op_decode_pkt.BRANCH;
         
-        alu_op_add = {1'b0, i_field_pkt.funct3} == ADD;
-        alu_op_or = {1'b0, i_field_pkt.funct3} == OR;
-        alu_op_xor = {1'b0, i_field_pkt.funct3} == XOR;
-        
+        alu_op_add = instruction_decode_pkt.ADD | instruction_decode_pkt.ADDI;        
+        alu_op_or = instruction_decode_pkt.OR | instruction_decode_pkt.ORI;
+        alu_op_xor = instruction_decode_pkt.XOR | instruction_decode_pkt.XORI;
+        alu_op_and = instruction_decode_pkt.AND | instruction_decode_pkt.ANDI;
 
+        alu_op_slt = instruction_decode_pkt.SLT | instruction_decode_pkt.SLTI;
+        alu_op_sltu = instruction_decode_pkt.SLTU | instruction_decode_pkt.SLTIU;
         
+        alu_op_sll = instruction_decode_pkt.SLL | instruction_decode_pkt.SLLI;
+        alu_op_srl = instruction_decode_pkt.SRL | instruction_decode_pkt.SRLI;
+        alu_op_sra = instruction_decode_pkt.SRA | instruction_decode_pkt.SRAI;
         
+        if (alu_use_qualifier) begin
+            unique case (1'b1)
+                alu_op_add : alu_op = ADD;
+                alu_op_or : alu_op = OR;
+                alu_op_xor : alu_op = XOR;
+                alu_op_and : alu_op = AND;
+                alu_op_slt : alu_op = SLT;
+                alu_op_sltu : alu_op = SLTU;
+                alu_op_sll : alu_op = SLL;
+                alu_op_srl : alu_op = SRL;
+                alu_op_sra : alu_op = SRA;
+                default : alu_op = NOP;
+            endcase 
+        end else begin
+            alu_op = NOP;
+        end
     end
 
     always_comb begin : regfile_wr_data_mux
 
-    end
+        link_address = target_address + 4;
 
-    always_comb begin : regfile_wr_en_control
-        
+        // may hide x's due to X-optimism
+        unique case ({regfile_use_imm_u, regfile_use_link_address, regfile_use_alu_result})
+            3'b100 : regfile_wr_data = {i_field_pkt.imm_u, 12'b0};
+            3'b010 : regfile_wr_data = alu_result;
+            3'b001 : regfile_wr_data = link_address;
+            default : regfile_wr_data = alu_result;
+        endcase
     end
 
     // Module Instantiation And Connections
     decoder decode(
         .i(instruction),
         .i_field_pkt(i_field_pkt),
-        .op_decode_pkt(op_decode_pkt)
+        .op_decode_pkt(op_decode_pkt),
+        .instruction_decode_pkt(instruction_decode_pkt),
+        .illegal_instruction(is_illegal_instruction)
     );
 
     alu alu(
         .a(alu_a),
         .b(alu_b),
         .op(alu_op),
-        .result(alu_result)
+        .result(alu_result),
+        .EQ(alu_eq),
+        .NE(alu_ne),
+        .LT(alu_lt),
+        .LTU(alu_ltu),
+        .GE(alu_ge),
+        .GEU(alu_geu)
     );
 
     regfile_32b regfile(

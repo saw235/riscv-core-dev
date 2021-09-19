@@ -5,20 +5,33 @@ module tb_top
 );
 
     mem_intf imem_if (.clk(clk));
+    mem_intf dmem_if (.clk(clk));
 
     core cpu(
         .clk(clk), 
         .cpu_rstn(cpu_rstn),
-        .rd_addr(imem_if.rd_addr),
-        .wr_addr(imem_if.wr_addr),
-        .wr_data(imem_if.wr_data),
-        .wren(imem_if.wren),
-        .rd_data(imem_if.rd_data)
+        // imem intf
+        .instr_rd_addr(imem_if.rd_addr),
+        .instr_wr_addr(imem_if.wr_addr),
+        .instr_wr_data(imem_if.wr_data),
+        .instr_wren(imem_if.wren),
+        .instr_rd_data(imem_if.rd_data),
+        // dmem intf
+        .data_rd_addr(dmem_if.rd_addr),
+        .data_wr_addr(dmem_if.wr_addr),
+        .data_wr_data(dmem_if.wr_data),
+        .data_wren(dmem_if.wren),
+        .data_rd_data(dmem_if.rd_data)
     );
 
     mem instr_mem (
         .intf(imem_if)
     );
+
+    mem data_mem (
+        .intf(dmem_if)
+    );
+
 
     int cycle = 0;
     always @(posedge clk) begin

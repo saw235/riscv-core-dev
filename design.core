@@ -12,8 +12,6 @@ filesets:
       - src/include/common_cells/registers.svh : { file_type: systemVerilogSource, is_include_file : true}
       - src/include/typedef.svh : { file_type: systemVerilogSource, is_include_file : true}
       - src/include/defines.svh : { file_type: systemVerilogSource, is_include_file : true}
-    # depend: 
-      # - pulp-platform.org::common_cells:1.20.0
 
   core_tb:
     files:

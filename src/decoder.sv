@@ -10,7 +10,9 @@ module decoder
 (
     input logic [31:0] i, // instruction
     output instr_field i_field_pkt,
-    output opcode_map op_decode_pkt
+    output opcode_map op_decode_pkt,
+    output instruction_decode_t instruction_decode_pkt,
+    output logic illegal_instruction 
 );
 
     logic _0_0_x;
@@ -96,9 +98,64 @@ module decoder
 
     //end riscv-spec 2.2 Table 19.1: RISC-V base opcode map
 
+    //See riscv-spec Chapter 25
+
+    assign instruction_decode_pkt.ADDI = op_decode_pkt.OP_IMM & (i_field_pkt.funct3 == 3'b000);
+    assign instruction_decode_pkt.SLTI = op_decode_pkt.OP_IMM & (i_field_pkt.funct3 == 3'b010);
+    assign instruction_decode_pkt.SLTIU = op_decode_pkt.OP_IMM & (i_field_pkt.funct3 == 3'b011);
+    assign instruction_decode_pkt.XORI = op_decode_pkt.OP_IMM & (i_field_pkt.funct3 == 3'b100);
+    assign instruction_decode_pkt.ORI = op_decode_pkt.OP_IMM & (i_field_pkt.funct3 == 3'b110);
+    assign instruction_decode_pkt.ANDI = op_decode_pkt.OP_IMM & (i_field_pkt.funct3 == 3'b111);
+    assign instruction_decode_pkt.SLLI = op_decode_pkt.OP_IMM & (i_field_pkt.funct3 == 3'b001) & i_field_pkt.imm_i[11:5] == 7'b0000000;
+    assign instruction_decode_pkt.SRLI = op_decode_pkt.OP_IMM & (i_field_pkt.funct3 == 3'b101) & i_field_pkt.imm_i[11:5] == 7'b0000000;
+    assign instruction_decode_pkt.SRAI = op_decode_pkt.OP_IMM & (i_field_pkt.funct3 == 3'b101) & i_field_pkt.imm_i[11:5] == 7'b0100000;
+
+    assign instruction_decode_pkt.LUI = op_decode_pkt.LUI;
+    assign instruction_decode_pkt.AUIPC = op_decode_pkt.AUIPC;
+    assign instruction_decode_pkt.JAL = op_decode_pkt.JAL;
+    assign instruction_decode_pkt.JALR = op_decode_pkt.JALR;
+
+    assign instruction_decode_pkt.ADD = op_decode_pkt.OP & (i_field_pkt.funct3 == 3'b000) & (i_field_pkt.funct7 == 7'b0000000);
+    assign instruction_decode_pkt.SUB = op_decode_pkt.OP & (i_field_pkt.funct3 == 3'b000) & (i_field_pkt.funct7 == 7'b0100000);
+    assign instruction_decode_pkt.SLL = op_decode_pkt.OP & (i_field_pkt.funct3 == 3'b001) & (i_field_pkt.funct7 == 7'b0000000);
+    assign instruction_decode_pkt.SLT = op_decode_pkt.OP & (i_field_pkt.funct3 == 3'b010) & (i_field_pkt.funct7 == 7'b0000000);
+    assign instruction_decode_pkt.SLTU = op_decode_pkt.OP & (i_field_pkt.funct3 == 3'b011) & (i_field_pkt.funct7 == 7'b0000000);
+    assign instruction_decode_pkt.XOR = op_decode_pkt.OP & (i_field_pkt.funct3 == 3'b100) & (i_field_pkt.funct7 == 7'b0000000);
+    assign instruction_decode_pkt.SRL = op_decode_pkt.OP & (i_field_pkt.funct3 == 3'b101) & (i_field_pkt.funct7 == 7'b0000000);
+    assign instruction_decode_pkt.SRA = op_decode_pkt.OP & (i_field_pkt.funct3 == 3'b101) & (i_field_pkt.funct7 == 7'b0100000);
+    assign instruction_decode_pkt.OR = op_decode_pkt.OP & (i_field_pkt.funct3 == 3'b110) & (i_field_pkt.funct7 == 7'b0000000);
+    assign instruction_decode_pkt.AND = op_decode_pkt.OP & (i_field_pkt.funct3 == 3'b111) & (i_field_pkt.funct7 == 7'b0000000);
+
+    assign instruction_decode_pkt.BEQ = op_decode_pkt.BRANCH & (i_field_pkt.funct3 == 3'b000);
+    assign instruction_decode_pkt.BNE = op_decode_pkt.BRANCH & (i_field_pkt.funct3 == 3'b001);
+    assign instruction_decode_pkt.BLT = op_decode_pkt.BRANCH & (i_field_pkt.funct3 == 3'b100);
+    assign instruction_decode_pkt.BGE = op_decode_pkt.BRANCH & (i_field_pkt.funct3 == 3'b101);
+    assign instruction_decode_pkt.BLTU = op_decode_pkt.BRANCH & (i_field_pkt.funct3 == 3'b110);
+    assign instruction_decode_pkt.BGEU = op_decode_pkt.BRANCH & (i_field_pkt.funct3 == 3'b111);
+
+    assign instruction_decode_pkt.LB = op_decode_pkt.LOAD & (i_field_pkt.funct3 == 3'b000);
+    assign instruction_decode_pkt.LH = op_decode_pkt.LOAD & (i_field_pkt.funct3 == 3'b001);
+    assign instruction_decode_pkt.LW = op_decode_pkt.LOAD & (i_field_pkt.funct3 == 3'b010);
+    assign instruction_decode_pkt.LBU = op_decode_pkt.LOAD & (i_field_pkt.funct3 == 3'b100);
+    assign instruction_decode_pkt.LHU = op_decode_pkt.LOAD & (i_field_pkt.funct3 == 3'b101);
+
+    assign instruction_decode_pkt.SB = op_decode_pkt.STORE & (i_field_pkt.funct3 == 3'b000);
+    assign instruction_decode_pkt.SH = op_decode_pkt.STORE & (i_field_pkt.funct3 == 3'b001);
+    assign instruction_decode_pkt.SW = op_decode_pkt.STORE & (i_field_pkt.funct3 == 3'b010);
+
+    // fence ecall break
+   
+   
+    // illegal instructions
+    assign illegal_instruction = instruction_decode_pkt == 0;
+    
+    
 
     `ifdef FORMAL
+        // rv32i instructions low bits are 2'b11
         `ASSUME_I(rv32i_lowbits, i[1:0] == 2'b11)
+
+        // Instruction opcode signals are mutually exclusive
         `ASSERT_I(op_decode_exclusive, (op_decode_pkt == 0 | $onehot(op_decode_pkt)))
     `endif
 

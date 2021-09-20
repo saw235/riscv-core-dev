@@ -14,14 +14,14 @@ module core
     output logic [`ADDRWIDTH-1:0] instr_wr_addr,
     output logic [`BUSWIDTH-1:0] instr_wr_data,
     input logic [`BUSWIDTH-1:0] instr_rd_data,
-    output logic instr_wren,
+    output logic [3:0] instr_wr_strobe,
 
     // master data mem intf
     output logic [`ADDRWIDTH-1:0] data_rd_addr,
     output logic [`ADDRWIDTH-1:0] data_wr_addr,
     output logic [`BUSWIDTH-1:0] data_wr_data,
     input logic [`BUSWIDTH-1:0] data_rd_data,
-    output logic data_wren
+    output logic [3:0] data_wr_strobe
 
 );
 
@@ -80,12 +80,16 @@ module core
     logic [`XLEN-1:0] address_generate;
     logic [`XLEN-1:0] link_address;
 
+    logic [`XLEN-1:0] load_val_mux_out;
+
     // control signals
     logic alu_b_use_imm_i;
+    logic alu_b_use_imm_s;
     logic next_pc_jump; 
     logic regfile_use_imm_u;
     logic regfile_use_link_address;
     logic regfile_use_alu_result;
+    logic regfile_use_load_val;
     logic use_aligned_address_generate;
     logic use_raw_address_generate;
     logic adder_use_imm_u;
@@ -93,7 +97,7 @@ module core
     logic adder_use_offset_i;
     logic adder_use_offset_b;
     logic regfile_wr_en;
-
+    logic dmem_write_req;
 
     // Front-End logic (Next PC)
     
@@ -124,19 +128,19 @@ module core
     assign next_pc = next_pc_sel ? target_address : pc_plus_4;
     
     // instruction address should be located at 32 bit boundary, 
-    // ie divisible by 4 byte
+    // ie divisible by 4
     // alignment implies => fetch_addr & 2^2-1 == 0 
-    assign fetch_addr_misaligned = fetch_addr[0] | fetch_addr[1] | fetch_addr[2];
+    assign fetch_addr_misaligned = fetch_addr[0] | fetch_addr[1];
     assign next_pc_sel = op_decode_pkt.BRANCH | op_decode_pkt.JAL | op_decode_pkt.JALR; // temp for now
 
     // Start behavioral ram assignments
     // TODO use actual bus interface or NoC architecture
-    assign instr_rd_addr = current_pc;
+    assign instr_rd_addr = current_pc[31:2];
 
     // Don't care about writes to instruction - mem for now just initialize to 0 
     assign instr_wr_addr = 0;
     assign instr_wr_data = 0; 
-    assign instr_wren = 0; 
+    assign instr_wr_strobe = 0; 
     assign instruction = instr_rd_data;
     // End behavioral ram assignments
 
@@ -161,7 +165,16 @@ module core
                             | instruction_decode_pkt.ANDI
                             | instruction_decode_pkt.SLLI
                             | instruction_decode_pkt.SRLI
-                            | instruction_decode_pkt.SRAI;
+                            | instruction_decode_pkt.SRAI
+                            | instruction_decode_pkt.LB
+                            | instruction_decode_pkt.LH
+                            | instruction_decode_pkt.LW
+                            | instruction_decode_pkt.LBU
+                            | instruction_decode_pkt.LHU;
+
+        alu_b_use_imm_s = instruction_decode_pkt.SB
+                        | instruction_decode_pkt.SH
+                        | instruction_decode_pkt.SW;
                             
         next_pc_jump = instruction_decode_pkt.JAL | instruction_decode_pkt.JALR 
                             | (instruction_decode_pkt.BEQ & alu_eq)
@@ -176,6 +189,12 @@ module core
                                 | instruction_decode_pkt.JAL 
                                 | instruction_decode_pkt.JALR ;
         regfile_use_alu_result = ~(regfile_use_imm_u & regfile_use_link_address);
+
+        regfile_use_load_val = instruction_decode_pkt.LB
+                                | instruction_decode_pkt.LH
+                                | instruction_decode_pkt.LW
+                                | instruction_decode_pkt.LBU
+                                | instruction_decode_pkt.LHU;
 
         use_aligned_address_generate = instruction_decode_pkt.JALR;
         use_raw_address_generate = ~use_aligned_address_generate;
@@ -193,20 +212,15 @@ module core
                         | op_decode_pkt.OP
                         | op_decode_pkt.OP_IMM);
 
-        // dmem_write_req = ~is_illegal_instruction & op_decode_pkt.STORE;
+        dmem_write_req = ~is_illegal_instruction & op_decode_pkt.STORE;
 
     end
 
     always_comb begin: alu_rs2_sel_mux
-
-        logic alu_b_select;
-
-        alu_b_select = alu_b_use_imm_i;
-
-        unique case (alu_b_select)
-            1'b0 : alu_b = regval.rs2_val;
-            1'b1 : alu_b = {{sign_extend_i_nbits{offset_i[offset_i_nbits-1]}}, offset_i};
-            default : alu_b = 'x;
+        unique case (1'b1)
+            alu_b_use_imm_i : alu_b = {{sign_extend_i_nbits{offset_i[offset_i_nbits-1]}}, offset_i};
+            alu_b_use_imm_s : alu_b = {{sign_extend_s_nbits{offset_s[offset_s_nbits-1]}}, offset_s};
+            default : alu_b = regval.rs2_val;
         endcase
     end
 
@@ -262,15 +276,67 @@ module core
     always_comb begin : regfile_wr_data_mux
 
         link_address = target_address + 4;
-
-        // may hide x's due to X-optimism
-        unique case ({regfile_use_imm_u, regfile_use_link_address, regfile_use_alu_result})
-            3'b100 : regfile_wr_data = {i_field_pkt.imm_u, 12'b0};
-            3'b010 : regfile_wr_data = alu_result;
-            3'b001 : regfile_wr_data = link_address;
+        unique case (1'b1)
+            regfile_use_imm_u : regfile_wr_data = {i_field_pkt.imm_u, 12'b0};
+            regfile_use_link_address : regfile_wr_data = alu_result;
+            regfile_use_alu_result : regfile_wr_data = link_address;
+            regfile_use_load_val : regfile_wr_data = load_val_mux_out;
             default : regfile_wr_data = alu_result;
         endcase
     end
+
+
+    // data mem logic
+
+    // automatically align address 
+    assign data_rd_addr = alu_result[31:2];
+    assign data_wr_addr = alu_result[31:2];
+
+    logic data_addr_misaligned;
+    logic data_wren;
+    assign data_addr_misaligned = data_wren & (alu_result[1] | alu_result[0]); 
+
+    assign data_wr_data = regval.rs2_val;
+    assign data_wren = dmem_write_req;
+
+    // load store data path
+    always_comb begin : store_wr_strobe_logic
+        unique case (1'b1)
+            (instruction_decode_pkt.SB & data_wren) : data_wr_strobe = 4'b0001;
+            (instruction_decode_pkt.SH & data_wren) : data_wr_strobe = 4'b0011;
+            (instruction_decode_pkt.SW & data_wren) : data_wr_strobe = 4'b1111;
+            default : data_wr_strobe = '0;
+        endcase
+    end
+
+    always_comb begin : load_transform_mux
+
+        logic [`XLEN-1:0] load_raw;
+        logic [`XLEN-1:0] load_val_byte;
+        logic [`XLEN-1:0] load_val_byte_unsigned;
+        logic [`XLEN-1:0] load_val_word;
+        logic [`XLEN-1:0] load_val_halfword;
+        logic [`XLEN-1:0] load_val_halfword_unsigned;
+
+        load_raw = data_rd_data;
+        load_val_byte = {24'b0, load_raw[7:0]};
+        load_val_byte_unsigned = {{24{load_raw[7]}}, load_raw[7:0]};
+        load_val_word = load_raw;
+        load_val_halfword = {16'b0, load_raw[15:0]};
+        load_val_halfword_unsigned = {{16{load_raw[15]}}, load_raw[15:0]};
+
+        unique case(1'b1)
+            instruction_decode_pkt.LB : load_val_mux_out = load_val_byte;
+            instruction_decode_pkt.LH : load_val_mux_out = load_val_byte_unsigned;
+            instruction_decode_pkt.LW : load_val_mux_out = load_val_word;
+            instruction_decode_pkt.LBU : load_val_mux_out = load_val_halfword;
+            instruction_decode_pkt.LHU : load_val_mux_out = load_val_halfword_unsigned;
+            default : load_val_mux_out = '0;
+        endcase
+
+    end
+    
+
 
     // Module Instantiation And Connections
     decoder decode(

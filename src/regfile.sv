@@ -25,7 +25,6 @@ module regfile_32b(
             if (wren) begin
                 regs[waddr] <= wdata;
             end
-        
     end
 
     `ifdef FORMAL

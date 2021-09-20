@@ -4,6 +4,7 @@
 `define XLEN 32
 `define ADDRWIDTH 32
 `define BUSWIDTH 32
+`define DMEM_STROBE_WIDTH 4
 
 // A macro to emulate |-> (a syntax that Yosys doesn't currently support).
 `define IMPLIES(a, b) ((b) || (!(a))) 
